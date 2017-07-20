@@ -7,6 +7,7 @@
   - [ ] Separate the various flute stylesheets into their own sub projects
   - [ ] Inspired by DigitalOcean, Coinbase, and iTunesConnect styles.
   - [ ] Use flexbox
+- [ ] Create webapp color palette
 
 ## Javascript
 
