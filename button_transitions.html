@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html ng-app="girder_app">
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="node_modules/font-awesome/css/font-awesome.min.css" />
+		<style>
+body {
+	width: 1000px;
+	margin: 50px auto 0;
+}
+
+button {
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	cursor: pointer;
+	text-align: right;
+	padding: 3px 10px 4px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	border: 1px solid #4cabff;
+	outline: none;
+	color: #0088ff;
+	margin-top: 2px;
+	background: none;
+	font-size: 15px;
+	line-height: 19px;
+
+	transition: color 0.2s, border-color 0.2s;
+
+}
+
+button:disabled {
+	color: #d9d9d9;
+    border-color: #e6e6e6;
+}
+
+		</style>
+	</head>
+	<body ng-controller="girder_ctrl as ctrl">
+		<button ng-click="ctrl.animate()" ng-disabled="ctrl.process.disabled">
+			<span ng-bind="ctrl.process.state"></span>
+			<span class="fa" ng-class="ctrl.process.icon"></span>
+		</button>
+
+		<script src="node_modules/angular/angular.min.js"></script>
+		<script src="node_modules/angular-animate/angular-animate.min.js"></script>
+		<script>
+angular.module('girder_app', ['ngAnimate'])
+	.controller('girder_ctrl', function($q, $timeout){
+		var ctrl = this;
+		ctrl.$q = $q;
+		ctrl.$timeout = $timeout;
+
+		ctrl.process = {
+			state: 'Inactive',
+			icon: null,
+			disabled: false
+		};
+
+		ctrl.set_state = function(states){
+			return ctrl.$q(function(resolve, reject){
+				function set_next_state(process, states, resolve, reject){
+					if (states.length === 0){
+						resolve();
+						return;
+					}
+
+					var new_state = states.shift();
+					process.state = new_state.state;
+					process.icon = new_state.icon;
+
+					if (states.length === 0){
+						resolve();
+						return;
+					}
+
+					ctrl.$timeout(set_next_state, 1000, true, process, states, resolve, reject);
+				}
+
+				set_next_state(ctrl.process, states, resolve, reject);
+			});
+		};
+
+		ctrl.set_disabled = function(disabled){
+			return $q(function(resolve, reject){
+				ctrl.process.disabled = disabled;
+
+				ctrl.$timeout(resolve, 200, true);
+			});
+		};
+
+		ctrl.animate = function(){
+			ctrl.set_disabled(true)
+				.then(function(){
+					return ctrl.set_state([{
+						'state': 'Uploading',
+						'icon': 'fa-cloud-upload'
+					}, {
+						'state': 'Processing',
+						'icon': 'fa-circle-o-notch fa-spin'
+					}, {
+						'state': 'Saved',
+						'icon': 'fa-check-circle-o'
+					}, {
+						'state': 'Inactive',
+						'icon': null
+					}]);
+				})
+				.then(function(){
+					return ctrl.set_disabled(false);
+				});
+		};
+	});
+		</script>
+	</body>
+</html>

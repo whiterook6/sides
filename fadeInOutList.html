@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html ng-app="girder_app">
+	<head>
+		<meta charset="UTF-8">
+		<style>
+body {
+	width: 1000px;
+	margin: 0 auto;
+}
+
+.item {
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	cursor: pointer;
+	text-align: right;
+	padding: 3px 10px 4px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	border: 1px solid #4cabff;
+	outline: none;
+	color: #0088ff;
+	margin-top: 2px;
+	background: none;
+	font-size: 15px;
+	line-height: 19px;
+}
+
+.item-container.ng-leave {
+  animation: fade-out 0.1s linear;
+  -webkit-animation: fade-out 0.1s linear;
+}
+
+@keyframes fade-out {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+@-webkit-keyframes fade-out {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+.item-container.ng-enter {
+  animation: fade-in 0.1s linear;
+  -webkit-animation: fade-in 0.1s linear;
+}
+
+@keyframes fade-in {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+
+@-webkit-keyframes fade-in {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+
+		</style>
+	</head>
+	<body ng-controller="girder_ctrl as ctrl">
+		<button ng-click="ctrl.simulate_add()">Add</button>
+		<button ng-click="ctrl.simulate_remove()">Remove</button>
+
+		<div>
+		Items:
+		</div>
+		<div class="item-container" ng-repeat="item in ctrl.items">
+			<span class="item" ng-bind="item" ng-click="ctrl.remove_item(item)"></span>
+		</div>
+
+		<script src="node_modules/angular/angular.min.js"></script>
+		<script src="node_modules/angular-animate/angular-animate.min.js"></script>
+		<script>
+angular.module('girder_app', ['ngAnimate'])
+	.controller('girder_ctrl', function($q, $timeout){
+		var ctrl = this;
+		ctrl.$q = $q;
+		ctrl.$timeout = $timeout;
+
+// interaction
+		ctrl.items = [];
+
+		ctrl.generate_items = function(){
+			return ctrl.$q(function(resolve, reject){
+				items = [];
+				for (var i = 0; i < 5; i++) {
+					items.push(Math.floor(Math.random() * (1000)));
+				}
+
+				resolve(items);
+			});
+		};
+
+		ctrl.fill_slowly = function(items){
+			return ctrl.$q(function(resolve, reject){
+				function move_item(source, destination, resolve, reject){
+					if (source.length === 0){
+						resolve(destination);
+						return;
+					}
+
+					destination.push(source.pop());
+					ctrl.$timeout(move_item, 50, true, source, destination, resolve, reject);
+				}
+
+				ctrl.$timeout(move_item, 50, true, items, ctrl.items, resolve, reject);
+			});
+		};
+
+		ctrl.remove_slowly = function(){
+			return $q(function(resolve, reject){
+
+				function remove_item(source, resolve, reject){
+					if (source.length === 0){
+						resolve();
+						return;
+					}
+
+					source.pop();
+
+					ctrl.$timeout(remove_item, 50, true, source, resolve, reject);
+				}
+
+				ctrl.$timeout(remove_item, 50, true, ctrl.items, resolve, reject);
+			});
+		};
+
+		ctrl.simulate_add = function(){
+			ctrl.generate_items()
+				.then(ctrl.fill_slowly)
+				.then(function(items){
+					console.log('Done adding.');
+				});
+		};
+
+		ctrl.simulate_remove = function(){
+			ctrl.remove_slowly()
+				.then(function(){
+					console.log('Done removing.');
+				});
+		};
+
+		ctrl.remove_item = function(item){
+			var index = ctrl.items.indexOf(item);
+			if (index >= 0){
+				ctrl.items.splice(index, 1);
+			}
+		};
+	});
+		</script>
+	</body>
+</html>
