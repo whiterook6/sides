@@ -8,6 +8,7 @@
   - [ ] Inspired by DigitalOcean, Coinbase, and iTunesConnect styles.
   - [ ] Use flexbox
 - [ ] Create webapp color palette
+- [ ] Endless scrolling with headers that stay at the top and push each other out of the way (nested divs or something? Might be pure css-able. Or JS.)
 
 ## Javascript
 
